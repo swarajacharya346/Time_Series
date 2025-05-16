@@ -1,35 +1,20 @@
 import pandas as pd
 from prophet import Prophet
-import matplotlib.pyplot as plt
 
-# Load cleaned data
-df = pd.read_csv('data/processed_data/AAPL_cleaned_data.csv')
+def run_prophet_forecast(ticker, data_path, forecast_days=30):
+    df = pd.read_csv(data_path, parse_dates=['Date'])
+    df_prophet = df[['Date', 'Close']].rename(columns={'Date': 'ds', 'Close': 'y'})
 
-# Prepare data for Prophet
-df_prophet = df[['Date', 'Close']]
+    model = Prophet()
+    model.fit(df_prophet)
 
-# Rename column names
+    future = model.make_future_dataframe(periods=forecast_days)
+    forecast = model.predict(future)
 
-df_prophet.rename(columns={'Date': 'ds', 'Close': 'y'}, inplace=True)
+    # Save relevant forecast data
+    forecast_save = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
+    save_path = f"data/forecasted_data/{ticker}_prophet_forecast.csv"
+    forecast_save.to_csv(save_path, index=False)
 
-# fit the Prophet model
-model = Prophet()
-model.fit(df_prophet)
-
-# Prediction
-future = model.make_future_dataframe(periods=365)
-forecast = model.predict(future)
-
-# Plot the forecast
-fig = model.plot(forecast)
-plt.title('Apple Stock Price Forecast')
-plt.xlabel('Date')
-plt.ylabel('Stock Price')
-plt.show()
-
-# Optionally: Plot components (trend, yearly, weekly effects)
-fig2 = model.plot_components(forecast)
-plt.show()
-
-# Save forecasted data
-forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].to_csv('data/processed_data/AAPL_forecasted_data.csv', index=False)
+    print(f"✅ Prophet forecast saved to {save_path}")
+    return forecast

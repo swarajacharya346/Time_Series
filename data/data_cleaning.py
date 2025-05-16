@@ -1,22 +1,27 @@
 import pandas as pd
 import os
 
-# Load the raw data
-raw_file_path = 'data/raw_data/AAPL_raw_data.csv'
-df = pd.read_csv(raw_file_path)
+def clean_stock_data(ticker):
+    raw_file_path = f'data/raw_data/{ticker}_raw_data.csv'
+    processed_dir = 'data/processed_data'
+    os.makedirs(processed_dir, exist_ok=True)
+    
+    try:
+        df = pd.read_csv(raw_file_path)
+        # Rename columns if needed (handle cases where columns might already be named correctly)
+        df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
+        df['Date'] = pd.to_datetime(df['Date'])
+        df.sort_values('Date', inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        
+        cleaned_file_path = f'{processed_dir}/{ticker}_cleaned_data.csv'
+        df.to_csv(cleaned_file_path, index=False)
+        
+        print(f"✅ Cleaned data saved to {cleaned_file_path}")
+        return cleaned_file_path
+    except Exception as e:
+        print(f"❌ Error cleaning data for {ticker}: {e}")
+        return None
 
-# Rename columns for simplicity
-df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
-
-# Convert 'Date' to datetime format and sort
-df['Date'] = pd.to_datetime(df['Date'])
-df.sort_values('Date', inplace=True)
-
-# Reset index
-df.reset_index(drop=True, inplace=True)
-
-# Save cleaned data
-os.makedirs('data/processed_data', exist_ok=True)
-df.to_csv('data/processed_data/AAPL_cleaned_data.csv', index=False)
-
-print("✅ Cleaned data saved to data/processed_data/AAPL_cleaned_data.csv")
+# Example usage:
+# clean_stock_data('AAPL')
