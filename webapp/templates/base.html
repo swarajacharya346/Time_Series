@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Stock Forecasting{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
   <div class="sidebar">
@@ -21,11 +21,18 @@
 
   <div class="main-content">
     <div class="top-right-buttons">
-      <button onclick="alert('Login clicked')">Login</button>
-      <button onclick="alert('Signup clicked')">Signup</button>
+      {% if session.get('username') %}
+        <span>Welcome, {{ session['username'] }}!</span>
+        <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+      {% else %}
+        <a href="{{ url_for('login') }}"><button>Login</button></a>
+        <a href="{{ url_for('signup') }}"><button>Signup</button></a>
+      {% endif %}
     </div>
 
-    {% block content %}{% endblock %}
+    <div class="content-wrapper">
+      {% block content %}{% endblock %}
+    </div>
   </div>
 </body>
 </html>

@@ -1,20 +1,31 @@
+import os
 import pandas as pd
 from prophet import Prophet
 
-def run_prophet_forecast(ticker, data_path, forecast_days=30):
-    df = pd.read_csv(data_path, parse_dates=['Date'])
-    df_prophet = df[['Date', 'Close']].rename(columns={'Date': 'ds', 'Close': 'y'})
-
+def forecast_prophet(df, symbol):
+    os.makedirs('data/forecasted_data', exist_ok=True)
+    
+    df_p = df[['Date', 'Close']].rename(columns={'Date': 'ds', 'Close': 'y'})
     model = Prophet()
-    model.fit(df_prophet)
-
-    future = model.make_future_dataframe(periods=forecast_days)
+    model.fit(df_p)
+    future = model.make_future_dataframe(periods=30)
     forecast = model.predict(future)
+    
+    forecast_clean = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].copy()
+    forecast_clean.rename(columns={
+        'ds': 'Date',
+        'yhat': 'Forecast',
+        'yhat_lower': 'Forecast_Lower',
+        'yhat_upper': 'Forecast_Upper'
+    }, inplace=True)
+    
+    path = f'data/forecasted_data/{symbol}_prophet_forecast.csv'
+    forecast_clean.to_csv(path, index=False)
+    print(f"🔮 Prophet forecast saved for {symbol}")
 
-    # Save relevant forecast data
-    forecast_save = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
-    save_path = f"data/forecasted_data/{ticker}_prophet_forecast.csv"
-    forecast_save.to_csv(save_path, index=False)
-
-    print(f"✅ Prophet forecast saved to {save_path}")
-    return forecast
+if __name__ == "__main__":
+    # For quick testing
+    test_path = 'data/processed_data/AAPL_cleaned_data.csv'
+    if os.path.exists(test_path):
+        df = pd.read_csv(test_path, parse_dates=['Date'])
+        forecast_prophet(df, 'AAPL')
