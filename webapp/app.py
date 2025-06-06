@@ -27,16 +27,25 @@ users = {
 }
 
 def get_cleaned_data(company):
-    path = f"data/processed_data/{tickers[company]}_cleaned_data.csv"
+    path = f"./data/processed_data/{tickers[company]}_cleaned_data.csv"
     if os.path.exists(path):
         return pd.read_csv(path)
     return None
 
 def get_forecasted_data(company, model):
-    path = f"data/forecasted_data/{tickers[company]}_{model.lower()}_forecasted_data.csv"
-    if os.path.exists(path):
-        return pd.read_csv(path)
+    filename = f"{tickers[company]}_{model.lower()}_forecast.csv"  # Updated
+    path = os.path.join(".", "data", "forecasted_data", filename)
+    full_path = os.path.abspath(path)
+    print("Looking for forecast file:", full_path)
+    if os.path.exists(full_path):
+        df = pd.read_csv(full_path)
+        df.columns = df.columns.str.strip()
+        return df
+    else:
+        print("⚠️ File not found at", full_path)
     return None
+
+
 
 def plot_data(df, plot_type, title, x_col=None, y_col=None):
     plt.clf()
